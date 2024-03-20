@@ -1,3 +1,5 @@
+from src.nodes.leafnode import LeafNode
+
 class TextNode:
     def __init__(self, text, text_type, url=None):
         self.text = text
@@ -11,3 +13,18 @@ class TextNode:
     
     def __repr__(self) -> str:
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
+    
+def text_node_to_html_node(text_node):
+    viable_text_types = {
+        "text": lambda: LeafNode(None, text_node.text),
+        "bold": lambda: LeafNode("b", text_node.text),
+        "italic": lambda: LeafNode("i", text_node.text),
+        "code": lambda: LeafNode("code", text_node.text),
+        "link": lambda: LeafNode("a", text_node.text),
+        "image": lambda: LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
+    }
+
+    if text_node.text_type not in viable_text_types:
+        raise ValueError(f"Text type ({text_node.text_type}) can not be converted into LeafNode")
+    
+    return viable_text_types[text_node.text_type]()
