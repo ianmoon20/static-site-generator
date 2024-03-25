@@ -1,7 +1,7 @@
 import unittest
 
-from src.nodes.textnode import TextNode, text_node_to_html_node
-from src.nodes.leafnode import LeafNode
+from src.nodes.textnode import *
+from src.nodes.leafnode import *
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -32,9 +32,37 @@ class TestTextNode(unittest.TestCase):
 
     def test_bold_text_node_to_html_node(self):
         node = text_node_to_html_node(TextNode("Hi", "bold"))
-        assert node.tag is "b"
+        assert node.tag == "b"
         assert node.value == "Hi"
-        assert node.props is None
+        assert node.props == None
+    
+    def test_split_nodes_code_delimiter(self):
+        node = TextNode("This is text with a `code block` word", "text")
+        self.assertEqual(split_nodes_delimiter([node], "`", "code"), 
+            [
+                TextNode("This is text with a ", "text"),
+                TextNode("code block", "code"),
+                TextNode(" word", "text"),
+            ]
+        )
+
+        node = TextNode("This is text with two `code block` words `throughout it`", "text")
+        self.assertEqual(split_nodes_delimiter([node], "`", "code"), 
+            [
+                TextNode("This is text with two ", "text"),
+                TextNode("code block", "code"),
+                TextNode(" words ", "text"),
+                TextNode("throughout it", "code")
+            ]
+        )
+
+    def test_extract_markdown_images(self):
+        text = "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and ![another](https://i.imgur.com/dfsdkjfd.png)"
+        self.assertEqual(extract_markdown_images(text), [("image", "https://i.imgur.com/zjjcJKZ.png"), ("another", "https://i.imgur.com/dfsdkjfd.png")])
+    
+    def test_extract_markdown_links(self):
+        text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+        self.assertEqual(extract_markdown_links(text), [("link", "https://www.example.com"), ("another", "https://www.example.com/another")])
 
 if __name__ == "__main__":
     unittest.main()

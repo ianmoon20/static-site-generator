@@ -1,4 +1,5 @@
 from src.nodes.leafnode import LeafNode
+import re
 
 class TextNode:
     def __init__(self, text, text_type, url=None):
@@ -28,3 +29,31 @@ def text_node_to_html_node(text_node):
         raise ValueError(f"Text type ({text_node.text_type}) can not be converted into LeafNode")
     
     return viable_text_types[text_node.text_type]()
+
+def split_nodes_delimiter(old_nodes, delimiter, text_type, default_text_type="text"):
+    results = []
+
+    for node in old_nodes:
+        if not isinstance(node, TextNode):
+            results.append(node)
+            continue
+
+        if node.text.count(delimiter) % 2 == 1:
+            raise ValueError("Unmatched delimiter detected: ensure every opening delimiter has a corresponding closing delimiter")
+        
+        texts = node.text.split(delimiter)
+
+        for textIndex in range(len(texts)):
+            if len(texts[textIndex]) == 0:
+                continue
+            
+            determined_type = text_type if textIndex % 2 == 1 else default_text_type
+            results.append(TextNode(texts[textIndex], determined_type))
+
+    return results
+
+def extract_markdown_images(text):
+    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+
+def extract_markdown_links(text):
+    return re.findall(r"\[(.*?)\]\((.*?)\)", text)
